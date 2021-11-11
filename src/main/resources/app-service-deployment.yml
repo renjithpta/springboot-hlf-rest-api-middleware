@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: userregistrationk8s
+  labels:
+    name: userregistrationk8s
+spec:
+  ports:
+    - nodePort: 30163
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: userregistrationk8s
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userregistrationk8s
+spec:
+  selector:
+    matchLabels:
+      app: userregistrationk8s
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: userregistrationk8s
+    spec:
+      containers:
+        - name: userregistrationk8s
+          image: userregistration:1.2.6
+          ports:
+            - containerPort: 8080
+          env:   # Setting Environmental Variables
+            - name: DB_HOST   # Setting Database host address from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-conf  # name of configMap
+                  key: host
+            - name: DB_NAME  # Setting Database name from configMap
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-conf
+                  key: name
+            - name: POSTGRES_USER  # Setting Database username from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials # Secret Name
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD # Setting Database password from Secret
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres_password
+
+

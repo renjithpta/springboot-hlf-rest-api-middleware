@@ -1,0 +1,130 @@
+app:
+  jwtSecret: 9a02115a835ee03d5fb83cd8a468ea33e4090aaaec87f53c9fa54512bbef4db8dc656c82a315fa0c785c08b0134716b81ddcd0153d2a7556f2e154912cf5675f
+  jwtExpirationInMs: 604800000
+
+  cors:
+    allowedOrigins : "*"
+springdoc:
+  swagger-ui:
+    enabled: true
+application:
+  description: HLF  REST API Middleware for fixmtoacris  chain.
+  version: 1.0.0
+server:
+  port: ${APP_SERVER_PORT:8080}
+  shutdown: graceful
+  lifecycle:
+    timeout-per-shutdown-phase: 1m
+
+  #context-path: /userregistration
+
+
+spring:
+  #sql.init.mode: never
+  jackson:
+    time-zone: UTC
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+      FAIL_ON_EMPTY_BEANS: false
+      FAIL_ON_SELF_REFERENCES: false
+  datasource:
+    #initialization-mode: always
+    platform: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/hlf_database?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false}
+    username: ${MYSQL_USER:hlf_user}
+    password: ${MYSQL_PASSWORD:hlf_password}
+    hikari:
+      initialization-fail-timeout: 0
+      connection-timeout: 50000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      maximum-pool-size: 10
+      pool-name: ConnPool
+      connection-test-query: select 1 from dual
+      #defer-datasource-initialization: true
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+
+
+
+
+    
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    com.zaxxer.hikari: TRACE
+    com.zaxxer.hikari.HikariConfig: DEBUG 
+  jpa: 
+    hibernate:
+      ddl-auto: update
+    connection.provider_class: com.zaxxer.hikari.hibernate.HikariConnectionProvider
+    defer-datasource-initialization : true
+     
+
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    show-sql: true
+    database: hlf_database
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+
+---
+spring:
+  profiles: prod
+management:
+  port: ${MANAGEMENT_SERVER_PORT:9000}
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
+  security:
+    enabled: false
+resilience4j:
+  circuitbreaker:
+    instances:
+      cb-instanceA:
+        failure-rate-threshold: 60  #The Threshold Percentage Above Which the Circuit Breaker will move from Closed to Open State.
+        wait-duration-in-open-state: 5000  #Time in milliseconds, in which the circuit breaker is to stay in open state before moving to half-open state
+        permitted-number-of-calls-in-half-open-state: 10
+        minimum-number-of-calls: 10  #The number of calls after which the error rate is calculated. I have assigned it with a small value for test purpose.
+  ratelimiter:
+    instances:
+      rl-instanceA:
+        limit-refresh-period: 200ns
+        limit-for-period: 40 #The Max number of calls that can be done in the time specified by limit-refresh-period
+        timeout-duration: 3s # The max amount of time a call can last
+  thread-pool-bulkhead:
+    instances:
+      tp-instanceA:
+        queue-capacity: 2 #The number of calls which can be queued if the thread pool is saturated
+        core-thread-pool-size: 4 #The Number of available threads in the Thread Pool.
+  timelimiter:
+    instances:
+      tl-instanceA:
+        timeout-duration: 2s # The max amount of time a call can last
+        cancel-running-future: false #do not cancel the Running Completable Futures After TimeOut.
+  retry:
+    instances:
+      re-instanceA:
+        max-attempts: 3
+        wait-duration: 1s # After this time, the call will be considered a failure and will be retried
+        retry-exceptions: #The List Of Exceptions That Will Trigger a Retry
+          - java.lang.RuntimeException
+          - java.io.IOException
+
+

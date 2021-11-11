@@ -1,0 +1,43 @@
+version: "3.8"
+volumes:
+    api_service:
+    db-data:
+
+services:
+  api_service:
+    build: .
+    restart: always
+    ports:
+      - 8080:8080
+      - 9000:9000
+    env_file:
+      - .env # configure postgres
+    depends_on:
+      - db
+    volumes:
+      - ./connection:/var
+    networks:
+      - fabric_test
+    links:
+      - db:db
+  db:
+    image: mysql:5.7
+    ports:
+      - "3308:3306"
+    restart: always
+    environment:
+      MYSQL_DATABASE: hlf_database
+      MYSQL_USER: hlf_user
+      MYSQL_PASSWORD: hlf_password
+      MYSQL_ROOT_PASSWORD: root
+    command: --init-file /data/application/init.sql
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./init.sql:/data/application/init.sql
+    networks:
+      - fabric_test
+
+networks:
+  fabric_test:
+    external: true  
+      

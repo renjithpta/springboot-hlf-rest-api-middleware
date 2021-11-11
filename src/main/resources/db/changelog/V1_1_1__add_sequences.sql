@@ -1,0 +1,3 @@
+DROP SEQUENCE IF EXISTS seq_urdetails;
+CREATE SEQUENCE seq_urdetails INCREMENT 1 START 400;
+

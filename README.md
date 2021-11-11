@@ -1,1 +1,3 @@
 # springboot-hlf-rest-api-middleware
+ 
+   REST API middleware for HLF based application using springboot framework. Here , the basic userdetails are stored using mysql db .The ecrtificte will be issued using a user registartion api service.An application username and passowrd will be set as enviornment varibale to authenticate user. The smae details should be present in the database as well. At api level, spring security is used to authenticate user.

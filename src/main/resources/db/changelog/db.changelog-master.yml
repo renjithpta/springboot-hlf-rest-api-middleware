@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/V1_0_0__ddl.sql
+  - include:
+      file: db/changelog/V1_0_1__sequences.sql
+  - include:
+      file: db/changelog/V1_1_0__add_table.sql
+  - include:
+      file: db/changelog/V1_1_1__add_sequences.sql
